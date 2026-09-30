@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #FAF5EE; color: #2B2118; font-family: var(--font-sans), system-ui, sans-serif; }
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif), Georgia, serif; }
+::selection { background: rgba(200, 90, 50, 0.22); }
+a { text-decoration: none; }
+img { display: block; max-width: 100%; }
