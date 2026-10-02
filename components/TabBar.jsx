@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Heart } from "lucide-react";
+import { BookOpen, Heart, Plus } from "lucide-react";
 
 const TABS = [
   { href: "/", label: "Cookbook", icon: BookOpen },
   { href: "/saved", label: "Favorites", icon: Heart },
+  { href: "/add", label: "Add", icon: Plus },
 ];
 
 export default function TabBar() {
@@ -24,7 +25,7 @@ export default function TabBar() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`tap flex items-center gap-2 rounded-full px-5 text-label-lg font-semibold transition-colors ${
+              className={`tap flex items-center gap-2 rounded-full px-4 text-label-lg sm:px-5 font-semibold transition-colors ${
                 active ? "bg-primary text-white" : "text-muted hover:bg-ghost-tint hover:text-ink"
               }`}
             >
