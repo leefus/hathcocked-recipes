@@ -1,6 +1,6 @@
 import { getFacets } from "@/lib/notion";
 import AddRecipeForm from "@/components/AddRecipeForm";
-import Brand from "@/components/Brand";
+import { HeaderBrand } from "@/components/Brand";
 
 export const revalidate = 3600;
 
@@ -25,7 +25,7 @@ export default async function AddRecipe() {
             Copy it down the way it's written on the card.
           </p>
         </div>
-        <Brand size={56} />
+        <HeaderBrand />
       </header>
 
       <AddRecipeForm

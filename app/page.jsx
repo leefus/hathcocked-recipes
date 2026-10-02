@@ -12,8 +12,8 @@ export default async function Home() {
       recipes={recipes}
       categories={facets.categories}
       tags={facets.tags}
-      eyebrow="The family book"
-      heading="Hathcocked"
+      eyebrow="A Family Recipe Book"
+      heading="Hathcocked Recipes"
     />
   );
 }

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Search, Clock, Users, X } from "lucide-react";
 import Dish from "./Dish";
-import Brand from "./Brand";
+import { HeaderBrand } from "./Brand";
 import { totalMinutes, attribution } from "@/lib/parse";
 
 /**
@@ -135,7 +135,7 @@ export default function RecipeBrowser({ recipes, categories, tags, heading, eyeb
             {heading}
           </h1>
         </div>
-        <Brand size={56} />
+        <HeaderBrand />
       </header>
 
       <div className="relative mt-6">
