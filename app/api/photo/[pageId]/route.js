@@ -11,6 +11,7 @@
  */
 
 import { Client } from "@notionhq/client";
+import { COLUMNS } from "@/lib/notion";
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
@@ -27,7 +28,7 @@ export async function GET(_request, { params }) {
 
   try {
     const page = await notion.pages.retrieve({ page_id: pageId });
-    const file = page.properties?.["Picture"]?.files?.[0];
+    const file = page.properties?.[COLUMNS.photo]?.files?.[0];
     const url = file?.file?.url ?? file?.external?.url;
 
     if (!url) {
