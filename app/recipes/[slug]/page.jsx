@@ -1,12 +1,148 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import SiteHeader from "@/app/components/SiteHeader";
-import { recipes, getRecipeBySlug } from "@/lib/recipes";
+import { ArrowLeft, Clock, Flame, Users } from "lucide-react";
+import { getRecipes, getRecipeBySlug } from "@/lib/notion";
+import { totalMinutes, attribution } from "@/lib/parse";
+import Dish from "@/components/Dish";
+import ScaledIngredients from "@/components/ScaledIngredients";
 
-export function generateStaticParams() { return recipes.map((recipe) => ({ slug: recipe.slug })); }
+export const revalidate = 3600;
 
-export default function RecipeDetailPage({ params }) {
-  const recipe = getRecipeBySlug(params.slug);
+/** Pre-build all 80 pages at deploy time — they load instantly. */
+export async function generateStaticParams() {
+  const recipes = await getRecipes();
+  return recipes.map((r) => ({ slug: r.slug }));
+}
+
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const recipe = await getRecipeBySlug(slug);
+  if (!recipe) return { title: "Not found" };
+  return {
+    title: `${recipe.title} — Hathcocked Recipes`,
+    description:
+      recipe.description ?? `A family recipe from ${attribution(recipe) ?? "the book"}.`,
+  };
+}
+
+function Meta({ icon: Icon, children }) {
+  return (
+    <span className="chip-neutral inline-flex items-center gap-1.5">
+      {Icon && <Icon className="h-3.5 w-3.5" strokeWidth={2.2} />}
+      {children}
+    </span>
+  );
+}
+
+export default async function RecipePage({ params }) {
+  const { slug } = await params;
+  const recipe = await getRecipeBySlug(slug);
   if (!recipe) notFound();
-  return <main className="min-h-screen bg-canvas text-ink"><SiteHeader title={recipe.title} /><div className="mx-auto max-w-container px-6 py-14"><Link href="/recipes" className="text-body-sm font-medium text-primary">← Back to recipes</Link><header className="mt-8 border-b border-hairline pb-8"><p className="text-label-md uppercase tracking-[0.2em] text-sage">{recipe.category}</p><h1 className="mt-3 font-serif text-display-mobile md:text-display-lg">{recipe.title}</h1><p className="mt-3 max-w-2xl text-body-lg text-muted">{recipe.subtitle}</p><div className="mt-6 flex flex-wrap gap-3"><span className="rounded-full bg-primary-tint px-3 py-1 text-label-sm text-primary-deep">{recipe.contributor}</span><span className="rounded-full bg-ghost-tint px-3 py-1 text-label-sm text-muted">{recipe.servings} servings</span><span className="rounded-full bg-ghost-tint px-3 py-1 text-label-sm text-muted">{recipe.totalTime} min total</span></div></header><div className="mt-10 grid gap-10 lg:grid-cols-[0.9fr_1.1fr]"><aside className="space-y-8"><div className="overflow-hidden rounded-xl border border-hairline bg-card shadow-e1"><img src={recipe.photo} alt={recipe.title} className="h-72 w-full object-cover" /></div><div className="rounded-xl border border-hairline bg-card p-6 shadow-e1"><h2 className="font-serif text-headline-sm">Ingredients</h2><ul className="mt-4 space-y-2 text-body-md text-muted">{recipe.ingredients.map((ingredient) => <li key={ingredient} className="flex gap-3"><span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" /><span>{ingredient}</span></li>)}</ul></div></aside><section className="space-y-8"><div className="rounded-xl border border-hairline bg-card p-6 shadow-e1"><h2 className="font-serif text-headline-sm">Method</h2><ol className="mt-5 space-y-4">{recipe.steps.map((step, index) => <li key={step} className="flex gap-4"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-label-md font-medium text-white">{index + 1}</span><p className="text-body-md text-muted">{step}</p></li>)}</ol></div><div className="rounded-xl border border-hairline bg-card p-6 shadow-e1"><h2 className="font-serif text-headline-sm">Kitchen notes</h2><ul className="mt-4 space-y-3 text-body-md text-muted">{recipe.notes.map((note) => <li key={note} className="flex gap-3"><span className="mt-1 text-primary">✦</span><span>{note}</span></li>)}</ul></div><div className="rounded-xl border border-hairline bg-card p-6 shadow-e1"><h2 className="font-serif text-headline-sm">Provenance</h2><p className="mt-3 text-body-md text-muted">{recipe.provenance}</p></div></section></div></div></main>;
+
+  const mins = totalMinutes(recipe);
+  const from = attribution(recipe);
+
+  return (
+    <article className="pb-24">
+      {/* Tablet and up: ingredient index beside the step directions. */}
+      <div className="mx-auto max-w-container lg:flex lg:gap-12 lg:px-12 lg:pt-10">
+        <div className="relative h-72 sm:h-96 lg:sticky lg:top-10 lg:h-[540px] lg:w-[42%] lg:shrink-0 lg:self-start lg:overflow-hidden lg:rounded-lg">
+          <Dish recipe={recipe} priority sizes="(min-width:1024px) 42vw, 100vw" />
+          <div className="absolute inset-x-0 top-0 p-4">
+            <Link
+              href="/"
+              aria-label="Back to the cookbook"
+              className="tap grid place-items-center rounded-full border border-hairline bg-card/90 backdrop-blur transition-transform active:scale-[0.98]"
+            >
+              <ArrowLeft className="h-5 w-5 text-ink" strokeWidth={2.2} />
+            </Link>
+          </div>
+        </div>
+
+        {/* Bottom sheet on mobile, column on desktop. */}
+        <div className="relative -mt-8 rounded-t-xl bg-canvas px-5 pt-8 sm:px-8 lg:mt-0 lg:min-w-0 lg:flex-1 lg:rounded-none lg:px-0 lg:pt-0">
+          {recipe.category && (
+            <p className="text-label-sm font-semibold uppercase tracking-[0.12em] text-sage-ink">
+              {recipe.category}
+            </p>
+          )}
+
+          <h1 className="mt-2 font-serif text-display-mobile font-medium text-ink sm:text-display-lg">
+            {recipe.title}
+          </h1>
+
+          {from && (
+            <p className="mt-2 font-serif text-note-italic italic text-muted">
+              from {from}
+            </p>
+          )}
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            {mins && <Meta icon={Clock}><span className="tnum">{mins}</span> min</Meta>}
+            {recipe.servings && (
+              <Meta icon={Users}>Serves <span className="tnum">{recipe.servings}</span></Meta>
+            )}
+            {recipe.difficulty && <Meta icon={Flame}>{recipe.difficulty}</Meta>}
+            {recipe.tags.map((t) => (
+              <span key={t} className="chip-sage">{t}</span>
+            ))}
+          </div>
+
+          {recipe.description && (
+            <p className="mt-5 font-serif text-body-lg leading-relaxed text-ink">
+              {recipe.description}
+            </p>
+          )}
+
+          <section className="mt-9">
+            <h2 className="font-serif text-headline-md font-semibold text-ink">
+              Ingredients
+            </h2>
+            <div className="mt-4">
+              <ScaledIngredients
+                ingredients={recipe.ingredients}
+                servings={recipe.servings}
+              />
+            </div>
+          </section>
+
+          <section className="mt-11">
+            <h2 className="font-serif text-headline-md font-semibold text-ink">
+              Directions
+            </h2>
+            <ol className="mt-5 space-y-6">
+              {recipe.steps.map((s, i) => (
+                <li key={i} className="flex gap-4">
+                  {/* 32px sage circles, Newsreader numerals — order matters here,
+                      so the numbering is carrying real information. */}
+                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sage font-serif text-label-lg font-semibold text-white">
+                    {i + 1}
+                  </span>
+                  <p className="pt-1 text-body-lg text-ink">{s}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          {/* Heirloom marginalia — the handwritten-card advice. */}
+          {recipe.notes && (
+            <aside className="mt-11 rounded-md border-l-4 border-saffron bg-marginalia p-5">
+              <h2 className="text-label-sm font-semibold uppercase tracking-[0.12em] text-saffron">
+                From the card
+              </h2>
+              <p className="mt-2 font-serif text-note-italic italic leading-relaxed text-ink">
+                {recipe.notes}
+              </p>
+            </aside>
+          )}
+
+          {recipe.source && recipe.source !== recipe.submittedBy && (
+            <p className="mt-9 text-label-md font-semibold uppercase tracking-[0.1em] text-muted">
+              Source · {recipe.source}
+            </p>
+          )}
+        </div>
+      </div>
+    </article>
+  );
 }

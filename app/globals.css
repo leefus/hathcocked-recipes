@@ -2,9 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-html { scroll-behavior: smooth; }
-body { margin: 0; background: #FAF5EE; color: #2B2118; font-family: var(--font-sans), system-ui, sans-serif; }
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif), Georgia, serif; }
-::selection { background: rgba(200, 90, 50, 0.22); }
-a { text-decoration: none; }
-img { display: block; max-width: 100%; }
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  /* Measurements line up column-wise even as the scaler changes them.
+     DESIGN.md puts numerals in Plus Jakarta Sans rather than a mono face,
+     so tabular figures do the alignment work instead. */
+  .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+  :focus-visible {
+    outline: none;
+    @apply ring-2 ring-primary ring-offset-2 ring-offset-canvas;
+  }
+}
+
+@layer components {
+  /* Level 1 — cards and content blocks */
+  .surface-1 { @apply bg-card border border-hairline shadow-e1; }
+  /* Level 2 — floating bars */
+  .surface-2 { @apply bg-card border border-hairline-strong shadow-e2; }
+
+  /* Every tap target clears 44px, for flour-covered fingers */
+  .tap { @apply min-h-[44px] min-w-[44px]; }
+
+  .chip-sage {
+    @apply rounded bg-sage/[0.12] px-3 py-1.5 text-label-md font-semibold text-sage-ink;
+  }
+  .chip-neutral {
+    @apply rounded border border-hairline bg-card px-3 py-1.5 text-label-md font-semibold text-muted;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .qty-pulse { animation: qtyPulse 0.35s ease-out; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
